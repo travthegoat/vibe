@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from .models import CustomUser
 
 from .serializers import *
+from review.models import Review
+from review.serializers import ReviewSerializer
 
 class FollowCreateAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -46,3 +48,16 @@ class FollowingsListAPIView(APIView):
         followings = Follows.objects.filter(follower=id)
         serializer = FollowingSerializer(followings, many=True)
         return Response({ "following_count": followings.count(), "followings": serializer.data})
+    
+class OwnedReviewListAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, id):
+        try:
+            user = CustomUser.objects.get(id=id)
+        except CustomUser.DoesNotExist:
+            return Response({ "message": "User does not exists!" })
+        
+        reviews = Review.objects.filter(author=user.id)
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data)
